@@ -1,25 +1,27 @@
 {
   "name": "780911-buy-and-sell-3",
   "version": "1.0.0",
-  "description": "* Студент: [Olga Tikhonova](https://up.htmlacademy.ru/nodejs/3/user/780911). * Наставник: `Неизвестно`.",
+  "description": "Куплю. Продам",
   "main": "./src/service/service.js",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "7.15.0",
+    "eslint-config-htmlacademy": "0.6.0"
+  },
   "scripts": {
     "test": "npm run eslint",
-    "eslint": "eslint --ext .js src/"
+    "eslint": "eslint --ext .js src/",
+    "start": "node ./src/service/service.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ChloeSilent/780911-buy-and-sell-3.git"
   },
   "keywords": [],
-  "author": "ChloeSilent",
+  "author": "Olga Tikhonova",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/ChloeSilent/780911-buy-and-sell-3/issues"
   },
-  "homepage": "https://github.com/ChloeSilent/780911-buy-and-sell-3#readme",
-  "devDependencies": {
-    "eslint": "7.15.0",
-    "eslint-config-htmlacademy": "0.6.0"
-  }
+  "homepage": "https://github.com/ChloeSilent/780911-buy-and-sell-3#readme"
 }
