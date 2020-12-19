@@ -5,3 +5,11 @@
 - - имя команды
 - - запуск и т.д.
 - - Экспорт
+
+
+как запускать команды
+
+1 задание
+
+node src/service/service.js --help  
+src/service/service.js --version
