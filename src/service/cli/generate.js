@@ -1,10 +1,11 @@
 'use strict';
 
-const fs = require(`fs`);
+const fs = require(`fs`).promises;
 const {
   getRandomInt,
   shuffle,
 } = require(`../../utils`);
+const chalk = require('chalk');
 
 const DEFAULT_COUNT = 1;
 const FILE_NAME = `mocks.json`;
@@ -64,7 +65,6 @@ const zeroFill = (number, width) => {
 };
 
 const getPictureFileName = (num1, num2) => {
-  console.log('getPictureFileName', num1, num2);
   return `item${zeroFill(getRandomInt(num1, num2), 2)}.jpg`;
 };
 
@@ -79,18 +79,26 @@ const generateOffers = (count) => (
   }))
 );
 
+
+
 module.exports = {
   name: `--generate`,
-  run(args) {
+  async run(args) {
     const [count] = args;
     const countOffer = Number.parseInt(count, 10) || DEFAULT_COUNT;
     const content = JSON.stringify(generateOffers(countOffer));
 
-    fs.writeFile(FILE_NAME, JSON.stringify(content), function (err) {
-      if (err) {
-        process.exit(1);
-      }
+    if (countOffer > 999) {
+      console.log(chalk.red('Не больше 1000 объявлений'));
+      process.exit(1);
+    }
+
+    try {
+      await fs.writeFile(FILE_NAME, JSON.stringify(content));
       process.exit(0);
-    });
+    } catch (error) {
+      process.exit(1);
+      console.log(chalk.red(error));
+    }
   }
 };
