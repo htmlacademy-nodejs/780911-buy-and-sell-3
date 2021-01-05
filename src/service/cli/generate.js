@@ -94,10 +94,9 @@ module.exports = {
 
     try {
       await fs.writeFile(FILE_NAME, JSON.stringify(content));
-      process.exit(0);
+      console.log(chalk.green(`Operation success. File created.`));
     } catch (error) {
-      process.exit(1);
-      console.log(chalk.red(error));
+      console.error(chalk.red(`Can't write data to file...`));
     }
   }
 };

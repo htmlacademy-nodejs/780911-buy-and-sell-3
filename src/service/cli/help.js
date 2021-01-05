@@ -16,6 +16,6 @@ const helpText = `
 module.exports = {
   name: `--help`,
   run() {
-    console.info(chalk.grey(helpText));
+    console.info(chalk.gray(helpText));
   }
 };
