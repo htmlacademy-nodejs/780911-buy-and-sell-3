@@ -5,7 +5,7 @@ const {
   getRandomInt,
   shuffle,
 } = require(`../../utils`);
-const chalk = require('chalk');
+const chalk = require(`chalk`);
 
 const DEFAULT_COUNT = 1;
 const FILE_NAME = `mocks.json`;
@@ -80,7 +80,6 @@ const generateOffers = (count) => (
 );
 
 
-
 module.exports = {
   name: `--generate`,
   async run(args) {
@@ -89,7 +88,7 @@ module.exports = {
     const content = JSON.stringify(generateOffers(countOffer));
 
     if (countOffer > 999) {
-      console.log(chalk.red('Не больше 1000 объявлений'));
+      console.log(chalk.red(`Не больше 1000 объявлений`));
       process.exit(1);
     }
 
