@@ -69,7 +69,7 @@ module.exports = {
     const [count] = args;
     const countOffer = Number.parseInt(count, 10) || DEFAULT_COUNT;
     const content = JSON.stringify(
-      generateOffers(countOffer, titles, categories, sentences)
+        generateOffers(countOffer, titles, categories, sentences)
     );
 
     if (countOffer > 999) {
