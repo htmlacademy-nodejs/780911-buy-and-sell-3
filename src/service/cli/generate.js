@@ -1,12 +1,11 @@
 "use strict";
 
 const fs = require(`fs`).promises;
-const path = require(`path`);
 const {getRandomInt, shuffle} = require(`../../utils`);
 const chalk = require(`chalk`);
-const titles = `../../../data/titles.txt`;
-const sentences = `../../../data/sentences.txt`;
-const categories = `../../../data/categories.txt`;
+const FILE_TITLES_PATH = `./data/titles.txt`;
+const FILE_SENTENCES_PATH = `./data/sentences.txt`;
+const FILE_CATEGORIES_PATH = `./data/categories.txt`;
 const DEFAULT_COUNT = 1;
 const FILE_NAME = `mocks.json`;
 
@@ -37,52 +36,41 @@ const getPictureFileName = (num1, num2) => {
   return `item${zeroFill(getRandomInt(num1, num2), 2)}.jpg`;
 };
 
-async function readFile(fileName) {
+const readContent = async (filePath) => {
   try {
-    const file = fs.readFile(path.resolve(__dirname, fileName), `utf-8`);
-    return file;
-  } catch (e) {
-    return e;
+    const content = await fs.readFile(filePath, `utf8`);
+    return content.split(/\n|\r/g).filter((item) => {
+      return item.length > 0;
+    });
+  } catch (err) {
+    console.error(chalk.red(err));
+    return [];
   }
-}
-
-async function arrayGenerator(text) {
-  const res = await readFile(text);
-  return res.split(/\n|\r/g).filter((item) => {
-    return item.length > 0;
-  });
-}
-
-const generateOffers = async (count) => {
-  const CATEGORIES = await arrayGenerator(categories);
-  const SENTENCES = await arrayGenerator(sentences);
-  const TITLES = await arrayGenerator(titles);
-
-  const res = Array(count)
-    .fill({})
-    .map(() => ({
-      category: [CATEGORIES[getRandomInt(0, CATEGORIES.length - 1)]],
-      description: shuffle(SENTENCES).slice(1, 5).join(` `),
-      picture: getPictureFileName(
-          getRandomInt(PictureRestrict.MIN, PictureRestrict.MAX),
-          2
-      ),
-      title: TITLES[getRandomInt(0, TITLES.length - 1)],
-      type: Object.keys(OfferType)[
-        Math.floor(Math.random() * Object.keys(OfferType).length)
-      ],
-      sum: getRandomInt(SumRestrict.MIN, SumRestrict.MAX),
-    }));
-
-  return res;
 };
+
+const generateOffers = (count, titles, categories, sentences) => (
+  Array(count).fill({}).map(() => ({
+    category: [categories[getRandomInt(0, categories.length - 1)]],
+    description: shuffle(sentences).slice(1, 5).join(` `),
+    picture: getPictureFileName(getRandomInt(PictureRestrict.MIN, PictureRestrict.MAX)),
+    title: titles[getRandomInt(0, titles.length - 1)],
+    type: Object.keys(OfferType)[Math.floor(Math.random() * Object.keys(OfferType).length)],
+    sum: getRandomInt(SumRestrict.MIN, SumRestrict.MAX),
+  }))
+);
 
 module.exports = {
   name: `--generate`,
   async run(args) {
+    const sentences = await readContent(FILE_SENTENCES_PATH);
+    const titles = await readContent(FILE_TITLES_PATH);
+    const categories = await readContent(FILE_CATEGORIES_PATH);
+
     const [count] = args;
     const countOffer = Number.parseInt(count, 10) || DEFAULT_COUNT;
-    const content = JSON.stringify(await generateOffers(countOffer));
+    const content = JSON.stringify(
+      generateOffers(countOffer, titles, categories, sentences)
+    );
 
     if (countOffer > 999) {
       console.log(chalk.red(`Не больше 1000 объявлений`));
