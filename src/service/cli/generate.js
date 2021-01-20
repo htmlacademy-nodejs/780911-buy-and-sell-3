@@ -81,23 +81,31 @@ async function readFile(fileName) {
     }
 }
 
-// const generateOffers = (count) => (
-//   Array(count).fill({}).map(() => ({
-//     category: [CATEGORIES[getRandomInt(0, CATEGORIES.length - 1)]],
-//     description: shuffle(SENTENCES).slice(1, 5).join(` `),
-//     picture: getPictureFileName(getRandomInt(PictureRestrict.MIN, PictureRestrict.MAX), 2),
-//     title: TITLES[getRandomInt(0, TITLES.length - 1)],
-//     type: Object.keys(OfferType)[Math.floor(Math.random() * Object.keys(OfferType).length)],
-//     sum: getRandomInt(SumRestrict.MIN, SumRestrict.MAX),
-//   }))
-// );
+async function ArrayGenerator(text){
+  const res = await readFile(text)
+  return res.split(/\n|\r/g).filter(item=>{return item.length > 0})
+}
+
+const generateOffers = (count) => (
+  const CATEGORIES = await ArrayGenerator(categories);
+  const SENTENCES = await ArrayGenerator(sentences);
+  const TITLES = await ArrayGenerator(titles);
+  Array(count).fill({}).map(() => ({
+    category: [CATEGORIES[getRandomInt(0, CATEGORIES.length - 1)]],
+    description: shuffle(SENTENCES).slice(1, 5).join(` `),
+    picture: getPictureFileName(getRandomInt(PictureRestrict.MIN, PictureRestrict.MAX), 2),
+    title: TITLES[getRandomInt(0, TITLES.length - 1)],
+    type: Object.keys(OfferType)[Math.floor(Math.random() * Object.keys(OfferType).length)],
+    sum: getRandomInt(SumRestrict.MIN, SumRestrict.MAX),
+  }));
+);
 
 module.exports = {
   name: `--generate`,
   async run(args) {
     const [count] = args;
     const countOffer = Number.parseInt(count, 10) || DEFAULT_COUNT;
-    //const content = JSON.stringify(generateOffers(countOffer));
+    const content = JSON.stringify(generateOffers(countOffer));
 
     if (countOffer > 999) {
       console.log(chalk.red(`Не больше 1000 объявлений`));
@@ -105,9 +113,9 @@ module.exports = {
     }
 
     try {
-      const res = await readFile(titles);
-      console.log(res.split("\n"));
-      await fs.writeFile(FILE_NAME, JSON.stringify('content'));
+      // const res = await readFile(titles);
+      // console.log(res.split(/\n|\r/g).filter(item=>{return item.length > 0}));
+      await fs.writeFile(FILE_NAME, JSON.stringify(content));
       console.log(chalk.green(`Operation success. File created.`));
     } catch (error) {
       console.error(chalk.red(`Can't write data to file...`));
