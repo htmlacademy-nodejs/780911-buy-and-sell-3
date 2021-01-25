@@ -11,5 +11,5 @@
 
 1 задание
 
-node src/service/service.js --help  
+node src/service/service.js --generate 
 src/service/service.js --version
