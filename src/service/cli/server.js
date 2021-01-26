@@ -3,7 +3,7 @@
 const express = require(`express`);
 const bodyParser = require(`body-parser`);
 const app = express();
-const port = 3000;
+const DEFAULT_POR = 3000;
 const FILE_TITLES_PATH = `./data/titles.txt`;
 const fs = require(`fs`).promises;
 
