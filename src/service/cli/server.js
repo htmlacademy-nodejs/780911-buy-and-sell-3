@@ -3,8 +3,8 @@
 const express = require(`express`);
 const bodyParser = require(`body-parser`);
 const app = express();
-const DEFAULT_POR = 3000;
-const FILE_TITLES_PATH = `./data/titles.txt`;
+const DEFAULT_PORT = 3000;
+const MOCK_FILE_PATH = `./mocks.json`;
 const fs = require(`fs`).promises;
 
 const readContent = async (filePath) => {
@@ -26,52 +26,41 @@ const returnHTML = (data) => {
     })
     .join(``);
 };
-const tasks = [
-  {
-    id: 1,
-    task: `task1`,
-    assignee: `assignee1000`,
-    status: `completed`,
-  },
-  {
-    id: 2,
-    task: `task2`,
-    assignee: `assignee1001`,
-    status: `completed`,
-  },
-  {
-    id: 3,
-    task: `task3`,
-    assignee: `assignee1002`,
-    status: `completed`,
-  },
-  {
-    id: 4,
-    task: `task4`,
-    assignee: `assignee1000`,
-    status: `completed`,
-  },
-];
+
+const returnTitles = async (file) => {
+  if (fs.existsSync(file)) {
+    const mockData = await readContent(file);
+    const arrMock = JSON.parse(mockData);
+    return JSON.parse(arrMock).map((item) => {
+      return item.title;
+    });
+  } else {
+    console.log(`The file does not exist.`);
+    return false;
+  }
+};
 
 module.exports = {
   name: `--server`,
   async run(args) {
-    const titles = await readContent(FILE_TITLES_PATH);
+    const port = args ? Number.parseInt(args[0], 10) : DEFAULT_PORT;
+    const titlesArr = await returnTitles(MOCK_FILE_PATH);
     app.use(bodyParser.json());
 
-    app.get(`/api/todos`, (req, res) => {
-      console.log(`api/todos called!`);
-      res.json(tasks);
-    });
-
     app.get(`/`, (req, res) => {
-      res.send(`<ul>${returnHTML(titles)}</ul>`);
+      console.log(titlesArr);
+      if (titlesArr) {
+        res.send(`<ul>${returnHTML(titlesArr)}</ul>`);
+      } else {
+        res.status(404).send(`Not found`);
+      }
     });
 
-    app.listen(port, async () => {
-      console.log(
-        `Server listening on the port::${port}  ${returnHTML(titles)}`
-      );
+    app.listen(port, async (err) => {
+      if (err) {
+        return console.error(`Ошибка при создании http-сервера.`, err);
+      }
+      return console.info(`Принимаю подключения на ${port}`);
     });
   },
 };
