@@ -13,4 +13,5 @@
 
 node src/service/service.js --generate 
 src/service/service.js --version
-npm run server - to run server 
+npm run server - to run server
+node src/index.js - to run express
