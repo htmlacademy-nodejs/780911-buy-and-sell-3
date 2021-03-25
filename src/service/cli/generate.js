@@ -6,8 +6,10 @@ const chalk = require(`chalk`);
 const FILE_TITLES_PATH = `./data/titles.txt`;
 const FILE_SENTENCES_PATH = `./data/sentences.txt`;
 const FILE_CATEGORIES_PATH = `./data/categories.txt`;
+const FILE_COMMENTS_PATH = `./data/comments.txt`;
 const DEFAULT_COUNT = 1;
 const FILE_NAME = `mocks.json`;
+const {nanoid} = require(`nanoid`);
 
 const OfferType = {
   OFFER: `offer`,
@@ -48,7 +50,17 @@ const readContent = async (filePath) => {
   }
 };
 
-const generateOffers = (count, titles, categories, sentences) => (
+const createCommentsList = (arr, length) => {
+  const commentsArr = [];
+
+  for (let i = 0; i < length; i++) {
+    commentsArr[i] = {id: nanoid(), text: arr[getRandomInt(0, arr.length)]};
+  }
+  return commentsArr;
+};
+
+const generateOffers = (count, titles, categories, sentences, comments) => (
+
   Array(count).fill({}).map(() => ({
     category: [categories[getRandomInt(0, categories.length - 1)]],
     description: shuffle(sentences).slice(1, 5).join(` `),
@@ -56,6 +68,7 @@ const generateOffers = (count, titles, categories, sentences) => (
     title: titles[getRandomInt(0, titles.length - 1)],
     type: Object.keys(OfferType)[Math.floor(Math.random() * Object.keys(OfferType).length)],
     sum: getRandomInt(SumRestrict.MIN, SumRestrict.MAX),
+    comments: createCommentsList(comments, 5),
   }))
 );
 
@@ -65,11 +78,12 @@ module.exports = {
     const sentences = await readContent(FILE_SENTENCES_PATH);
     const titles = await readContent(FILE_TITLES_PATH);
     const categories = await readContent(FILE_CATEGORIES_PATH);
-
+    const comments = await readContent(FILE_COMMENTS_PATH);
+    console.log('COMMENTS', comments);
     const [count] = args;
     const countOffer = Number.parseInt(count, 10) || DEFAULT_COUNT;
     const content = JSON.stringify(
-        generateOffers(countOffer, titles, categories, sentences)
+      generateOffers(countOffer, titles, categories, sentences, comments)
     );
 
     if (countOffer > 999) {
