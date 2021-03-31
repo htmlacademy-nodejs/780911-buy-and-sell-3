@@ -9,7 +9,7 @@
 
 команды
 
-node src/service/service.js --generate 
+node src/service/service.js --generate 5
 src/service/service.js --version
 npm run server - to run server
 node src/index.js - to run express

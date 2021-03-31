@@ -2,28 +2,17 @@
 
 const DEFAULT_PORT = 3000;
 const MOCK_FILE_PATH = `./mocks.json`;
+const FILE_CATEGORIES_PATH = `./data/categories.txt`;
 const fs = require(`fs`).promises;
 const fs2 = require(`fs`);
 const chalk = require(`chalk`);
 const {HttpCode} = require(`../../HttpCode`);
-
+const {returnCategories, readContent} = require(`../../utils`);
 const {Router} = require(`express`);
 const offersRouter = new Router();
 
 const express = require(`express`);
 const {nanoid} = require("nanoid");
-
-const readContent = async (filePath) => {
-  try {
-    const content = await fs.readFile(filePath, `utf8`);
-    return content.split(/\n|\r/g).filter((item) => {
-      return item.length > 0;
-    });
-  } catch (err) {
-    console.error(err);
-    return [];
-  }
-};
 
 const sendResponse = (res, statusCode, message) => {
   const template = `
@@ -43,14 +32,14 @@ const sendResponse = (res, statusCode, message) => {
   res.end(template);
 };
 
-const returnTitles = async (file) => {
+const returnPropertyList = async (file, prop) => {
   const errMessage = `The file does not exist.`;
   try {
     if (fs2.existsSync(file)) {
       const mockData = await readContent(file);
       const arrMock = JSON.parse(mockData);
       return JSON.parse(arrMock).map((item) => {
-        return item.title;
+        return item[prop];
       });
     } else {
       console.log(errMessage);
@@ -62,34 +51,17 @@ const returnTitles = async (file) => {
   }
 };
 
-const returnOffer = async (file, index) => {
+const returnOfferByID = async (file, id) => {
   const errMessage = `The file does not exist.`;
   try {
     if (fs2.existsSync(file)) {
       const mockData = await readContent(file);
       const arrMock = JSON.parse(mockData);
-      console.log('index', index, typeof inddex);
-      console.log('JSON.parse(arrMock)', typeof JSON.parse(arrMock));
-      return JSON.parse(arrMock)[index];
-    } else {
-      console.log(errMessage);
-      return false;
-    }
-  } catch (err) {
-    console.log(errMessage);
-    return false;
-  }
-};
-
-const returnOffers = async (file) => {
-  const errMessage = `The file does not exist.`;
-  try {
-    if (fs2.existsSync(file)) {
-      const mockData = await readContent(file);
-      const arrMock = JSON.parse(mockData);
-      return JSON.parse(arrMock).map((item) => {
-        return item.comments;
+      const offer = JSON.parse(arrMock).find((item) => {
+        return item.id === id;
       });
+
+      return offer;
     } else {
       console.log(errMessage);
       return false;
@@ -101,21 +73,23 @@ const returnOffers = async (file) => {
 };
 
 const returnList = (arr) => {
-  const list = arr.map(item => {`<li>${item}</li>`});
-  return `<ul>${list}</ul>`;
-}
+  const list = arr.map((item) => {
+    if (typeof item === "object" && item !== null) {
+      return `<li id="${item.id}">${item.text}</li>`;
+    } else {
+      return `<li>${item}</li>`;
+    }
+  });
+  return `<ul>${list.join("")}</ul>`;
+};
 
-const returnComments = (arr) => {
-
-  const list = arr.map(item => {return `<li id="${item.id}">${item.text}</li>`});
-  return `<ul>${list.join('')}</ul>`;
-}
 module.exports = {
   name: `--server`,
   async run(args) {
     const port = args ? Number.parseInt(args[0], 10) : DEFAULT_PORT;
     const notFoundMessageText = `Not found`;
-    const titlesList = await returnTitles(MOCK_FILE_PATH);
+    const titlesList = await returnPropertyList(MOCK_FILE_PATH, "title");
+
     const message = titlesList.map((post) => `<li>${post}</li>`).join(``);
     const app = express();
 
@@ -130,17 +104,50 @@ module.exports = {
     app.use(
       `/offers`,
       offersRouter.get(`/`, async (req, res) => {
-        const jsonRes = JSON.parse(await fs.readFile(MOCK_FILE_PATH, `utf8`));
-        res.json(jsonRes);
+        const offersList = await fs.readFile(MOCK_FILE_PATH, `utf8`);
+        const jsonRes = JSON.parse(offersList);
+
+        const markdownOffersList = JSON.parse(jsonRes).map(offer => {
+          const categories = returnList(offer.category);
+          const comments = returnList(offer.comments);
+          return(`<div><h1>${offer.title}</h1>${categories}<div>id: ${offer.id}</div><div>type: <bold>${offer.type}</bold></div><div>price: <bold>${offer.sum}</bold></div></div><h2>comments</h2>${comments}`);
+        })
+
+        sendResponse(
+          res,
+          HttpCode.OK,
+          `<div>${markdownOffersList}</div>`
+        );
       })
     );
 
+    app.post('/offers',(request,response) => {
+      console.log(request.body);
+    });
+
     app.get(`/offers/:offerId`, async (req, res) => {
       try {
-        const offer = await returnOffer(MOCK_FILE_PATH, parseInt(req.params.offerId));
-        const categories = returnList(offer.category);
-        const comments = returnComments(offer.comments);
-        sendResponse(res, HttpCode.OK, `<div><h1>${offer.title}</h1>${categories}<bold>${offer.type}</bold><bold>${offer.sum}</bold></div>${comments}`);
+        const offer = await returnOfferByID(MOCK_FILE_PATH, req.params.offerId);
+        if (offer) {
+          const categories = returnList(offer.category);
+          const comments = returnList(offer.comments);
+          sendResponse(
+            res,
+            HttpCode.OK,
+            `<div><h1>${offer.title}</h1>${categories}<div>id: ${offer.id}</div><div>type: <bold>${offer.type}</bold></div><div>price: <bold>${offer.sum}</bold></div></div><h2>comments</h2>${comments}`
+          );
+        } else {
+          sendResponse(res, HttpCode.NOT_FOUND, err, req, res);
+        }
+      } catch (err) {
+        sendResponse(res, HttpCode.NOT_FOUND, err, req, res);
+      }
+    });
+
+    app.use(`/categories`, async (req, res) => {
+      try {
+        const categories = await returnCategories(FILE_CATEGORIES_PATH);
+        sendResponse(res, HttpCode.OK, `<div>${returnList(categories)}</div>`);
       } catch (err) {
         sendResponse(res, HttpCode.NOT_FOUND, err, req, res);
       }
