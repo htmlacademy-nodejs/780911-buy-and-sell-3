@@ -25,7 +25,7 @@ module.exports.returnCategories = async (file) => {
   try {
     if (fs2.existsSync(file)) {
       const mockData = await module.exports.readContent(file);
-      console.log("mockData", mockData);
+
       return mockData;
     } else {
       console.log(errMessage);
@@ -40,12 +40,23 @@ module.exports.returnCategories = async (file) => {
 module.exports.readContent = async (filePath) => {
   try {
     const content = await fs.readFile(filePath, `utf8`);
-    return content.split(/\n|\r/g).filter((item) => {
-      return item.length > 0;
-    });
+    return JSON.parse(content);
   } catch (err) {
     console.error(err);
     return [];
   }
 };
 
+module.exports.generateOffers = (count, titles, categories, sentences, comments) => (
+
+  Array(count).fill({}).map(() => ({
+    id: nanoid(),
+    category: [categories[getRandomInt(0, categories.length - 1)]],
+    description: shuffle(sentences).slice(1, 5).join(` `),
+    picture: getPictureFileName(getRandomInt(PictureRestrict.MIN, PictureRestrict.MAX)),
+    title: titles[getRandomInt(0, titles.length - 1)],
+    type: Object.keys(OfferType)[Math.floor(Math.random() * Object.keys(OfferType).length)],
+    sum: getRandomInt(SumRestrict.MIN, SumRestrict.MAX),
+    comments: createCommentsList(comments, 5),
+  }))
+);

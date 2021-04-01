@@ -2,7 +2,10 @@
 
 const DEFAULT_PORT = 3000;
 const MOCK_FILE_PATH = `./mocks.json`;
+const FILE_TITLES_PATH = `./data/titles.txt`;
+const FILE_SENTENCES_PATH = `./data/sentences.txt`;
 const FILE_CATEGORIES_PATH = `./data/categories.txt`;
+const FILE_COMMENTS_PATH = `./data/comments.txt`;
 const fs = require(`fs`).promises;
 const fs2 = require(`fs`);
 const chalk = require(`chalk`);
@@ -32,44 +35,19 @@ const sendResponse = (res, statusCode, message) => {
   res.end(template);
 };
 
-const returnPropertyList = async (file, prop) => {
-  const errMessage = `The file does not exist.`;
-  try {
-    if (fs2.existsSync(file)) {
-      const mockData = await readContent(file);
-      const arrMock = JSON.parse(mockData);
-      return JSON.parse(arrMock).map((item) => {
-        return item[prop];
-      });
-    } else {
-      console.log(errMessage);
-      return false;
-    }
-  } catch (err) {
-    console.log(errMessage);
-    return false;
-  }
+const returnPropertyList = async (arr, prop) => {
+  return arr.map((item) => {
+    //console.log('item', item);
+    return item[prop];
+  });
 };
 
-const returnOfferByID = async (file, id) => {
-  const errMessage = `The file does not exist.`;
-  try {
-    if (fs2.existsSync(file)) {
-      const mockData = await readContent(file);
-      const arrMock = JSON.parse(mockData);
-      const offer = JSON.parse(arrMock).find((item) => {
-        return item.id === id;
-      });
+const returnOfferByID = async (arr, id) => {
+  const offer = arr.find((item) => {
+    return item.id === id;
+  });
 
-      return offer;
-    } else {
-      console.log(errMessage);
-      return false;
-    }
-  } catch (err) {
-    console.log(errMessage);
-    return false;
-  }
+  return offer;
 };
 
 const returnList = (arr) => {
@@ -88,8 +66,14 @@ module.exports = {
   async run(args) {
     const port = args ? Number.parseInt(args[0], 10) : DEFAULT_PORT;
     const notFoundMessageText = `Not found`;
-    const titlesList = await returnPropertyList(MOCK_FILE_PATH, "title");
 
+    const allOffersList = await readContent(MOCK_FILE_PATH);
+
+    const titlesList = await returnPropertyList(allOffersList, "title");
+    const sentences = await readContent(FILE_SENTENCES_PATH);
+    const titles = await readContent(FILE_TITLES_PATH);
+    const categories = await readContent(FILE_CATEGORIES_PATH);
+    const comments = await readContent(FILE_COMMENTS_PATH);
     const message = titlesList.map((post) => `<li>${post}</li>`).join(``);
     const app = express();
 
@@ -104,30 +88,24 @@ module.exports = {
     app.use(
       `/offers`,
       offersRouter.get(`/`, async (req, res) => {
-        const offersList = await fs.readFile(MOCK_FILE_PATH, `utf8`);
-        const jsonRes = JSON.parse(offersList);
-
-        const markdownOffersList = JSON.parse(jsonRes).map(offer => {
+        const markdownOffersList = allOffersList.map((offer) => {
           const categories = returnList(offer.category);
           const comments = returnList(offer.comments);
-          return(`<div><h1>${offer.title}</h1>${categories}<div>id: ${offer.id}</div><div>type: <bold>${offer.type}</bold></div><div>price: <bold>${offer.sum}</bold></div></div><h2>comments</h2>${comments}`);
-        })
+          return `<div><h1>${offer.title}</h1>${categories}<div>id: ${offer.id}</div><div>type: <bold>${offer.type}</bold></div><div>price: <bold>${offer.sum}</bold></div></div><h2>comments</h2>${comments}`;
+        });
 
-        sendResponse(
-          res,
-          HttpCode.OK,
-          `<div>${markdownOffersList}</div>`
-        );
+        sendResponse(res, HttpCode.OK, `<div>${markdownOffersList}</div>`);
       })
     );
 
-    app.post('/offers',(request,response) => {
-      console.log(request.body);
+    app.post("/offers", (request, response) => {
+      const newOffer = generateOffers(1, titles, categories, sentences, comments);
+      console.log('newOffer', newOffer[0]);
     });
 
     app.get(`/offers/:offerId`, async (req, res) => {
       try {
-        const offer = await returnOfferByID(MOCK_FILE_PATH, req.params.offerId);
+        const offer = await returnOfferByID(allOffersList, req.params.offerId);
         if (offer) {
           const categories = returnList(offer.category);
           const comments = returnList(offer.comments);

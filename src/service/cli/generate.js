@@ -1,7 +1,7 @@
 "use strict";
 
 const fs = require(`fs`).promises;
-const {getRandomInt, shuffle} = require(`../../utils`);
+const {getRandomInt, shuffle, generateOffers} = require(`../../utils`);
 const chalk = require(`chalk`);
 const FILE_TITLES_PATH = `./data/titles.txt`;
 const FILE_SENTENCES_PATH = `./data/sentences.txt`;
@@ -59,19 +59,19 @@ const createCommentsList = (arr, length) => {
   return commentsArr;
 };
 
-const generateOffers = (count, titles, categories, sentences, comments) => (
-
-  Array(count).fill({}).map(() => ({
-    id: nanoid(),
-    category: [categories[getRandomInt(0, categories.length - 1)]],
-    description: shuffle(sentences).slice(1, 5).join(` `),
-    picture: getPictureFileName(getRandomInt(PictureRestrict.MIN, PictureRestrict.MAX)),
-    title: titles[getRandomInt(0, titles.length - 1)],
-    type: Object.keys(OfferType)[Math.floor(Math.random() * Object.keys(OfferType).length)],
-    sum: getRandomInt(SumRestrict.MIN, SumRestrict.MAX),
-    comments: createCommentsList(comments, 5),
-  }))
-);
+// const generateOffers = (count, titles, categories, sentences, comments) => (
+//
+//   Array(count).fill({}).map(() => ({
+//     id: nanoid(),
+//     category: [categories[getRandomInt(0, categories.length - 1)]],
+//     description: shuffle(sentences).slice(1, 5).join(` `),
+//     picture: getPictureFileName(getRandomInt(PictureRestrict.MIN, PictureRestrict.MAX)),
+//     title: titles[getRandomInt(0, titles.length - 1)],
+//     type: Object.keys(OfferType)[Math.floor(Math.random() * Object.keys(OfferType).length)],
+//     sum: getRandomInt(SumRestrict.MIN, SumRestrict.MAX),
+//     comments: createCommentsList(comments, 5),
+//   }))
+// );
 
 module.exports = {
   name: `--generate`,
@@ -92,7 +92,7 @@ module.exports = {
     }
 
     try {
-      await fs.writeFile(FILE_NAME, JSON.stringify(content));
+      await fs.writeFile(FILE_NAME, content);
       console.log(chalk.green(`Operation success. File created.`));
     } catch (error) {
       console.error(chalk.red(`Can't write data to file...`));
