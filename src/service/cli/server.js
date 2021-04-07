@@ -88,13 +88,13 @@ module.exports = {
     app.use(
       `/offers`,
       offersRouter.get(`/`, async (req, res) => {
-        const markdownOffersList = allOffersList.map((offer) => {
-          const categories = returnList(offer.category);
-          const comments = returnList(offer.comments);
-          return `<div><h1>${offer.title}</h1>${categories}<div>id: ${offer.id}</div><div>type: <bold>${offer.type}</bold></div><div>price: <bold>${offer.sum}</bold></div></div><h2>comments</h2>${comments}`;
-        });
-
-        sendResponse(res, HttpCode.OK, `<div>${markdownOffersList}</div>`);
+        // const markdownOffersList = allOffersList.map((offer) => {
+        //   const categories = returnList(offer.category);
+        //   const comments = returnList(offer.comments);
+        //   return `<div><h1>${offer.title}</h1>${categories}<div>id: ${offer.id}</div><div>type: <bold>${offer.type}</bold></div><div>price: <bold>${offer.sum}</bold></div></div><h2>comments</h2>${comments}`;
+        // });
+        res.json(allOffersList)
+        //sendResponse(res, HttpCode.OK, `<div>${markdownOffersList}</div>`);
       })
     );
 
