@@ -12,6 +12,7 @@ const {
   readContentJSON,
   readContentTxt,
   generateOffers,
+  createCommentsList,
 } = require(`../../utils`);
 const {Router} = require(`express`);
 const offersRouter = new Router();
@@ -26,7 +27,7 @@ const sendResponse = (res, statusCode, message) => {
       </head>
       <body>${message}</body>
     </html>`.trim();
-
+  console.log("message", message);
   res.statusCode = statusCode;
   res.writeHead(statusCode, {
     "Content-Type": `text/html; charset=UTF-8`,
@@ -41,7 +42,7 @@ const returnPropertyList = async (arr, prop) => {
   });
 };
 
-const returnOfferByID = async (arr, id) => {
+const returnItemByID = async (arr, id) => {
   const offer = arr.find((item) => {
     return item.id === id;
   });
@@ -55,7 +56,7 @@ module.exports = {
     const port = args ? Number.parseInt(args[0], 10) : DEFAULT_PORT;
     const notFoundMessageText = `Not found`;
 
-    const allOffersList = await readContentJSON(MOCK_FILE_PATH);
+    let allOffersList = await readContentJSON(MOCK_FILE_PATH);
 
     const titlesList = await returnPropertyList(allOffersList, "title");
     const sentences = await readContentTxt(FILE_SENTENCES_PATH);
@@ -69,7 +70,7 @@ module.exports = {
       try {
         sendResponse(res, HttpCode.OK, `<ul>${message}</ul>`);
       } catch (err) {
-        sendResponse(res, HttpCode.NOT_FOUND, err, req, res);
+        sendResponse(res, HttpCode.NOT_FOUND, err);
       }
     });
 
@@ -94,30 +95,111 @@ module.exports = {
 
     app.get(`/offers/:offerId`, async (req, res) => {
       try {
-        const offer = await returnOfferByID(allOffersList, req.params.offerId);
+        const offer = await returnItemByID(allOffersList, req.params.offerId);
         if (offer) {
           res.json(offer);
         } else {
-          sendResponse(res, HttpCode.NOT_FOUND, req, res);
+          sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
         }
       } catch (err) {
-        sendResponse(res, HttpCode.NOT_FOUND, err, req, res);
+        sendResponse(res, HttpCode.NOT_FOUND, err);
       }
     });
 
-
     app.put(`/offers/:offerId`, async (req, res) => {
       try {
-        const offer = await returnOfferByID(allOffersList, req.params.offerId);
-        console.log("NEW VALUE: " , req.body)
+        const offer = await returnItemByID(allOffersList, req.params.offerId);
+
         if (offer) {
+          offer.title = `Updated ${offer.title}`;
           res.json(offer);
         } else {
-          sendResponse(res, HttpCode.NOT_FOUND, req, res);
+          sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
         }
       } catch (err) {
-        sendResponse(res, HttpCode.NOT_FOUND, err, req, res);
+        sendResponse(res, HttpCode.NOT_FOUND, err);
       }
+    });
+
+    app.delete(`/offers/:offerId`, async (req, res) => {
+      try {
+        const offer = await returnItemByID(allOffersList, req.params.offerId);
+
+        if (offer) {
+          allOffersList = allOffersList.filter(
+            (offer) => offer.id !== req.params.offerId
+          );
+
+          if (allOffersList.length < 1) {
+            sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
+          } else {
+            res.json(allOffersList);
+          }
+        } else {
+          sendResponse(
+            res,
+            HttpCode.NOT_FOUND,
+            `Offer with id ${req.params.offerId} not found`
+          );
+        }
+      } catch (err) {
+        sendResponse(res, HttpCode.NOT_FOUND, err);
+      }
+    });
+
+    app.get("/offers/:offerId/comments", async (req, res) => {
+      try {
+        const offer = await returnItemByID(allOffersList, req.params.offerId);
+
+        if (offer) {
+          res.json(offer.comments);
+        } else {
+          sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
+        }
+      } catch (err) {
+        sendResponse(res, HttpCode.NOT_FOUND, err);
+      }
+    });
+
+    app.delete("/offers/:offerId/comments/:commentId", async (req, res) => {
+      try {
+        const offer = await returnItemByID(allOffersList, req.params.offerId);
+        const comment = await returnItemByID(
+          offer.comments,
+          req.params.commentId
+        );
+
+        if (offer && comment) {
+          const newCommentsList = offer.comments.filter(
+            (comment) => comment.id !== req.params.commentId
+          );
+
+          offer.comments = newCommentsList;
+          res.json(offer);
+        } else {
+          sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
+        }
+      } catch (err) {
+        sendResponse(res, HttpCode.NOT_FOUND, err);
+      }
+    });
+
+    app.post("/offers/:offerId/comments/", async (req, res) => {
+      try {
+        const offer = await returnItemByID(allOffersList, req.params.offerId);
+        const newComment = createCommentsList(comments, 1);
+
+        offer.comments.push(newComment);
+        res.json(offer);
+      } catch (err) {
+        sendResponse(res, HttpCode.NOT_FOUND, err);
+      }
+    });
+
+    app.get("search?query", async (req, res) => {
+      /*
+write filter method like in endpoints above
+* */
     });
 
     app.use(`/categories`, async (req, res) => {
@@ -125,7 +207,7 @@ module.exports = {
         const categories = await readContentTxt(FILE_CATEGORIES_PATH);
         res.json(categories);
       } catch (err) {
-        sendResponse(res, HttpCode.NOT_FOUND, err, req, res);
+        sendResponse(res, HttpCode.NOT_FOUND, err);
       }
     });
 

@@ -103,4 +103,5 @@ module.exports = {
   getRandomInt,
   zeroFill,
   getPictureFileName,
+  createCommentsList
 };

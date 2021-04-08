@@ -10,18 +10,6 @@ const FILE_COMMENTS_PATH = `./data/comments.txt`;
 const DEFAULT_COUNT = 1;
 const FILE_NAME = `mocks.json`;
 
-// const readContent = async (filePath) => {
-//   try {
-//     const content = await fs.readFile(filePath, `utf8`);
-//     return content.split(/\n|\r/g).filter((item) => {
-//       return item.length > 0;
-//     });
-//   } catch (err) {
-//     console.error(chalk.red(err));
-//     return [];
-//   }
-// };
-
 module.exports = {
   name: `--generate`,
   async run(args) {
