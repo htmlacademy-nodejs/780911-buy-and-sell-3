@@ -1,14 +1,37 @@
 "use strict";
 const fs = require(`fs`).promises;
-const fs2 = require(`fs`);
+const {nanoid} = require("nanoid");
+const OfferType = {
+  OFFER: `offer`,
+  SALE: `sale`,
+};
 
-module.exports.getRandomInt = (min, max) => {
+const SumRestrict = {
+  MIN: 1000,
+  MAX: 100000,
+};
+
+const PictureRestrict = {
+  MIN: 1,
+  MAX: 16,
+};
+
+const createCommentsList = (arr, length) => {
+  const commentsArr = [];
+
+  for (let i = 0; i < length; i++) {
+    commentsArr[i] = {id: nanoid(), text: arr[getRandomInt(0, arr.length)]};
+  }
+  return commentsArr;
+};
+
+const getRandomInt = (min, max) => {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
-module.exports.shuffle = (someArray) => {
+const shuffle = (someArray) => {
   for (let i = someArray.length - 1; i > 0; i--) {
     const randomPosition = Math.floor(Math.random() * i);
     [someArray[i], someArray[randomPosition]] = [
@@ -20,43 +43,64 @@ module.exports.shuffle = (someArray) => {
   return someArray;
 };
 
-module.exports.returnCategories = async (file) => {
-  const errMessage = `The file does not exist.`;
-  try {
-    if (fs2.existsSync(file)) {
-      const mockData = await module.exports.readContent(file);
-
-      return mockData;
-    } else {
-      console.log(errMessage);
-      return false;
-    }
-  } catch (err) {
-    console.log(errMessage);
-    return false;
+const zeroFill = (number, width) => {
+  width -= number.toString().length;
+  if (width > 0) {
+    return new Array(width + (/\./.test(number) ? 2 : 1)).join(`0`) + number;
   }
+  return number + ``;
 };
 
-module.exports.readContent = async (filePath) => {
+const getPictureFileName = (num1, num2) => {
+  return `item${zeroFill(getRandomInt(num1, num2), 2)}.jpg`;
+};
+
+const readContentJSON = async (filePath) => {
   try {
     const content = await fs.readFile(filePath, `utf8`);
     return JSON.parse(content);
   } catch (err) {
-    console.error(err);
+    console.error(`readContentJSON`, filePath, err);
     return [];
   }
 };
 
-module.exports.generateOffers = (count, titles, categories, sentences, comments) => (
+const readContentTxt = async (filePath) => {
+  try {
+    const content = await fs.readFile(filePath, `utf8`);
+    return content.split(/\n|\r/g).filter((item) => {
+      return item.length > 0;
+    });
+  } catch (err) {
+    console.error(`readContentTxt`, filePath, err);
+    return [];
+  }
+};
 
-  Array(count).fill({}).map(() => ({
-    id: nanoid(),
-    category: [categories[getRandomInt(0, categories.length - 1)]],
-    description: shuffle(sentences).slice(1, 5).join(` `),
-    picture: getPictureFileName(getRandomInt(PictureRestrict.MIN, PictureRestrict.MAX)),
-    title: titles[getRandomInt(0, titles.length - 1)],
-    type: Object.keys(OfferType)[Math.floor(Math.random() * Object.keys(OfferType).length)],
-    sum: getRandomInt(SumRestrict.MIN, SumRestrict.MAX),
-    comments: createCommentsList(comments, 5),
-  }))
-);
+const generateOffers = (count, titles, categories, sentences, comments) =>
+  Array(count)
+    .fill({})
+    .map(() => ({
+      id: nanoid(),
+      category: [categories[getRandomInt(0, categories.length - 1)]],
+      description: shuffle(sentences).slice(1, 5).join(` `),
+      picture: getPictureFileName(
+        getRandomInt(PictureRestrict.MIN, PictureRestrict.MAX)
+      ),
+      title: titles[getRandomInt(0, titles.length - 1)],
+      type: Object.keys(OfferType)[
+        Math.floor(Math.random() * Object.keys(OfferType).length)
+      ],
+      sum: getRandomInt(SumRestrict.MIN, SumRestrict.MAX),
+      comments: createCommentsList(comments, 5),
+    }));
+
+module.exports = {
+  generateOffers,
+  readContentTxt,
+  readContentJSON,
+  shuffle,
+  getRandomInt,
+  zeroFill,
+  getPictureFileName,
+};
