@@ -58,7 +58,7 @@ module.exports = {
 
     let allOffersList = await readContentJSON(MOCK_FILE_PATH);
 
-    const titlesList = await returnPropertyList(allOffersList, "title");
+    const titlesList = await returnPropertyList(allOffersList, `title`);
     const sentences = await readContentTxt(FILE_SENTENCES_PATH);
     const titles = await readContentTxt(FILE_TITLES_PATH);
     const categories = await readContentTxt(FILE_CATEGORIES_PATH);
@@ -75,19 +75,19 @@ module.exports = {
     });
 
     app.use(
-      `/api/offers`,
-      offersRouter.get(`/`, async (req, res) => {
-        res.json(allOffersList);
-      })
+        `/api/offers`,
+        offersRouter.get(`/`, async (req, res) => {
+          res.json(allOffersList);
+        })
     );
 
-    app.post("/api/offers", (req, res) => {
+    app.post(`/api/offers`, (req, res) => {
       const newOffer = generateOffers(
-        1,
-        titles,
-        categories,
-        sentences,
-        comments
+          1,
+          titles,
+          categories,
+          sentences,
+          comments
       );
       allOffersList.push(newOffer[0]);
       res.json(newOffer[0]);
@@ -127,7 +127,7 @@ module.exports = {
 
         if (offer) {
           allOffersList = allOffersList.filter(
-            (offer) => offer.id !== req.params.offerId
+              (item) => item.id !== req.params.offerId
           );
 
           if (allOffersList.length < 1) {
@@ -137,9 +137,9 @@ module.exports = {
           }
         } else {
           sendResponse(
-            res,
-            HttpCode.NOT_FOUND,
-            `Offer with id ${req.params.offerId} not found`
+              res,
+              HttpCode.NOT_FOUND,
+              `Offer with id ${req.params.offerId} not found`
           );
         }
       } catch (err) {
@@ -147,7 +147,7 @@ module.exports = {
       }
     });
 
-    app.get("/api/offers/:offerId/comments", async (req, res) => {
+    app.get(`/api/offers/:offerId/comments`, async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
 
@@ -161,17 +161,17 @@ module.exports = {
       }
     });
 
-    app.delete("/api/offers/:offerId/comments/:commentId", async (req, res) => {
+    app.delete(`/api/offers/:offerId/comments/:commentId`, async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
         const comment = await returnItemByID(
-          offer.comments,
-          req.params.commentId
+            offer.comments,
+            req.params.commentId
         );
 
         if (offer && comment) {
           const newCommentsList = offer.comments.filter(
-            (comment) => comment.id !== req.params.commentId
+              (item) => item.id !== req.params.commentId
           );
 
           offer.comments = newCommentsList;
@@ -184,7 +184,7 @@ module.exports = {
       }
     });
 
-    app.post("/api/offers/:offerId/comments/", async (req, res) => {
+    app.post(`/api/offers/:offerId/comments/`, async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
         const newComment = createCommentsList(comments, 1);
@@ -196,7 +196,7 @@ module.exports = {
       }
     });
 
-    app.get("/api/search", async (req, res) => {
+    app.get(`/api/search`, async (req, res) => {
       const foundByTitleArr = allOffersList.filter((item) => {
         return item.title.includes(req.query.query);
       });
@@ -208,13 +208,12 @@ module.exports = {
           sendResponse(res, HttpCode.NOT_FOUND, err);
         }
       } else {
-        sendResponse(res, HttpCode.NOT_FOUND, "no offers with such title");
+        sendResponse(res, HttpCode.NOT_FOUND, `no offers with such title`);
       }
     });
 
     app.use(`/api/categories`, async (req, res) => {
       try {
-        const categories = await readContentTxt(FILE_CATEGORIES_PATH);
         res.json(categories);
       } catch (err) {
         sendResponse(res, HttpCode.NOT_FOUND, err);
