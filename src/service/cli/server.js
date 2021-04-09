@@ -27,7 +27,7 @@ const sendResponse = (res, statusCode, message) => {
       </head>
       <body>${message}</body>
     </html>`.trim();
-  console.log("message", message);
+
   res.statusCode = statusCode;
   res.writeHead(statusCode, {
     "Content-Type": `text/html; charset=UTF-8`,
@@ -75,13 +75,13 @@ module.exports = {
     });
 
     app.use(
-      `/offers`,
+      `/api/offers`,
       offersRouter.get(`/`, async (req, res) => {
         res.json(allOffersList);
       })
     );
 
-    app.post("/offers", (req, res) => {
+    app.post("/api/offers", (req, res) => {
       const newOffer = generateOffers(
         1,
         titles,
@@ -93,7 +93,7 @@ module.exports = {
       res.json(newOffer[0]);
     });
 
-    app.get(`/offers/:offerId`, async (req, res) => {
+    app.get(`/api/offers/:offerId`, async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
         if (offer) {
@@ -106,7 +106,7 @@ module.exports = {
       }
     });
 
-    app.put(`/offers/:offerId`, async (req, res) => {
+    app.put(`/api/offers/:offerId`, async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
 
@@ -121,7 +121,7 @@ module.exports = {
       }
     });
 
-    app.delete(`/offers/:offerId`, async (req, res) => {
+    app.delete(`/api/offers/:offerId`, async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
 
@@ -147,7 +147,7 @@ module.exports = {
       }
     });
 
-    app.get("/offers/:offerId/comments", async (req, res) => {
+    app.get("/api/offers/:offerId/comments", async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
 
@@ -161,7 +161,7 @@ module.exports = {
       }
     });
 
-    app.delete("/offers/:offerId/comments/:commentId", async (req, res) => {
+    app.delete("/api/offers/:offerId/comments/:commentId", async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
         const comment = await returnItemByID(
@@ -184,7 +184,7 @@ module.exports = {
       }
     });
 
-    app.post("/offers/:offerId/comments/", async (req, res) => {
+    app.post("/api/offers/:offerId/comments/", async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
         const newComment = createCommentsList(comments, 1);
@@ -196,13 +196,23 @@ module.exports = {
       }
     });
 
-    app.get("search?query", async (req, res) => {
-      /*
-write filter method like in endpoints above
-* */
+    app.get("/api/search", async (req, res) => {
+      const foundByTitleArr = allOffersList.filter((item) => {
+        return item.title.includes(req.query.query);
+      });
+
+      if (foundByTitleArr.length) {
+        try {
+          res.json(foundByTitleArr);
+        } catch (err) {
+          sendResponse(res, HttpCode.NOT_FOUND, err);
+        }
+      } else {
+        sendResponse(res, HttpCode.NOT_FOUND, "no offers with such title");
+      }
     });
 
-    app.use(`/categories`, async (req, res) => {
+    app.use(`/api/categories`, async (req, res) => {
       try {
         const categories = await readContentTxt(FILE_CATEGORIES_PATH);
         res.json(categories);
