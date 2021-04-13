@@ -16,7 +16,8 @@ const {offerValidator} = require(`../middlewares/offerValidator`);
 const {Router} = require(`express`);
 const offersRouter = new Router();
 const express = require(`express`);
-
+const bodyParser = require(`body-parser`);
+const jsonParser = bodyParser.json();
 const sendResponse = (res, statusCode, message) => {
   const template = `
     <!Doctype html>
@@ -63,6 +64,7 @@ module.exports = {
     const message = titlesList.map((post) => `<li>${post}</li>`).join(``);
 
     const app = express();
+
     // eslint-disable-next-line new-cap
     const api = express.Router();
     app.use(`/api`, api);
@@ -82,10 +84,10 @@ module.exports = {
         })
     );
 
-    api.post(`/offers`, offerValidator, (req, res) => {
+    api.post(`/offers`, jsonParser, offerValidator, (req, res) => {
       const newOffer = createOffer(req.body);
-      allOffersList.push(newOffer[0]);
-      res.json(newOffer[0]);
+      allOffersList.push(newOffer);
+      res.json(allOffersList[allOffersList.length - 1]);
     });
 
     api.get(`/offers/:offerId`, async (req, res) => {
