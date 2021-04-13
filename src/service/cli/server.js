@@ -2,8 +2,6 @@
 
 const DEFAULT_PORT = 3000;
 const MOCK_FILE_PATH = `./mocks.json`;
-const FILE_TITLES_PATH = `./data/titles.txt`;
-const FILE_SENTENCES_PATH = `./data/sentences.txt`;
 const FILE_CATEGORIES_PATH = `./data/categories.txt`;
 const FILE_COMMENTS_PATH = `./data/comments.txt`;
 const chalk = require(`chalk`);
@@ -11,9 +9,10 @@ const {HttpCode} = require(`../../HttpCode`);
 const {
   readContentJSON,
   readContentTxt,
-  generateOffers,
   createCommentsList,
+  createOffer,
 } = require(`../../utils`);
+const {offerValidator} = require(`../middlewares/offerValidator`);
 const {Router} = require(`express`);
 const offersRouter = new Router();
 const express = require(`express`);
@@ -59,12 +58,14 @@ module.exports = {
     let allOffersList = await readContentJSON(MOCK_FILE_PATH);
 
     const titlesList = await returnPropertyList(allOffersList, `title`);
-    const sentences = await readContentTxt(FILE_SENTENCES_PATH);
-    const titles = await readContentTxt(FILE_TITLES_PATH);
     const categories = await readContentTxt(FILE_CATEGORIES_PATH);
     const comments = await readContentTxt(FILE_COMMENTS_PATH);
     const message = titlesList.map((post) => `<li>${post}</li>`).join(``);
+
     const app = express();
+    // eslint-disable-next-line new-cap
+    const api = express.Router();
+    app.use(`/api`, api);
 
     app.get(`/`, async (req, res) => {
       try {
@@ -74,26 +75,20 @@ module.exports = {
       }
     });
 
-    app.use(
-        `/api/offers`,
+    api.use(
+        `/offers`,
         offersRouter.get(`/`, async (req, res) => {
           res.json(allOffersList);
         })
     );
 
-    app.post(`/api/offers`, (req, res) => {
-      const newOffer = generateOffers(
-          1,
-          titles,
-          categories,
-          sentences,
-          comments
-      );
+    api.post(`/offers`, offerValidator, (req, res) => {
+      const newOffer = createOffer(req.body);
       allOffersList.push(newOffer[0]);
       res.json(newOffer[0]);
     });
 
-    app.get(`/api/offers/:offerId`, async (req, res) => {
+    api.get(`/offers/:offerId`, async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
         if (offer) {
@@ -106,7 +101,7 @@ module.exports = {
       }
     });
 
-    app.put(`/api/offers/:offerId`, async (req, res) => {
+    api.put(`/offers/:offerId`, async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
 
@@ -121,7 +116,7 @@ module.exports = {
       }
     });
 
-    app.delete(`/api/offers/:offerId`, async (req, res) => {
+    api.delete(`/offers/:offerId`, async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
 
@@ -147,7 +142,7 @@ module.exports = {
       }
     });
 
-    app.get(`/api/offers/:offerId/comments`, async (req, res) => {
+    api.get(`/offers/:offerId/comments`, async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
 
@@ -161,7 +156,7 @@ module.exports = {
       }
     });
 
-    app.delete(`/api/offers/:offerId/comments/:commentId`, async (req, res) => {
+    api.delete(`/offers/:offerId/comments/:commentId`, async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
         const comment = await returnItemByID(
@@ -184,19 +179,19 @@ module.exports = {
       }
     });
 
-    app.post(`/api/offers/:offerId/comments/`, async (req, res) => {
+    api.post(`/offers/:offerId/comments/`, async (req, res) => {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
         const newComment = createCommentsList(comments, 1);
 
-        offer.comments.push(newComment);
+        offer.comments.push(newComment[0]);
         res.json(offer);
       } catch (err) {
         sendResponse(res, HttpCode.NOT_FOUND, err);
       }
     });
 
-    app.get(`/api/search`, async (req, res) => {
+    api.get(`/search`, async (req, res) => {
       const foundByTitleArr = allOffersList.filter((item) => {
         return item.title.includes(req.query.query);
       });
@@ -212,7 +207,7 @@ module.exports = {
       }
     });
 
-    app.use(`/api/categories`, async (req, res) => {
+    api.use(`/categories`, async (req, res) => {
       try {
         res.json(categories);
       } catch (err) {

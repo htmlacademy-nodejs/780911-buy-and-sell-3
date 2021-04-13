@@ -77,6 +77,10 @@ const readContentTxt = async (filePath) => {
   }
 };
 
+const createOffer = (offer) => {
+  return Object.assign({id: nanoid(), comments: []}, offer);
+};
+
 const generateOffers = (count, titles, categories, sentences, comments) =>
   Array(count)
     .fill({})
@@ -103,5 +107,6 @@ module.exports = {
   getRandomInt,
   zeroFill,
   getPictureFileName,
-  createCommentsList
+  createCommentsList,
+  createOffer,
 };

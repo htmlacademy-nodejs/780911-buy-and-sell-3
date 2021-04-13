@@ -1,0 +1,27 @@
+"use strict";
+
+const offerKeys = [
+  `category`,
+  `description`,
+  `picture`,
+  `title`,
+  `type`,
+  `sum`,
+];
+const {HttpCode} = require(`../../HttpCode`);
+
+const offerValidator = (req, res, next) => {
+  const newOffer = req.body;
+  const keys = Object.keys(newOffer);
+  const keysExists = offerKeys.every((key) => keys.includes(key));
+
+  if (!keysExists) {
+    res.status(HttpCode.BAD_REQUEST).send(`Bad request`);
+  }
+
+  next();
+};
+
+module.exports = {
+  offerValidator,
+};

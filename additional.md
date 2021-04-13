@@ -22,4 +22,4 @@ then test everything manually
 
 
 to test query
-http://localhost:3000/search?query=hohohho
+~~http://localhost:3000/search?query=hohohho~~
