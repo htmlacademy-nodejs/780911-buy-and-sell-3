@@ -38,6 +38,8 @@ const offerPutValidator = (req, res, next) => {
 const commentValidator = (req, res, next) => {
   if (`text` in req.body) {
     next();
+  } else {
+    sendResponse(res, HttpCode.BAD_REQUEST, `invalid input`);
   }
 };
 
