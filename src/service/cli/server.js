@@ -10,6 +10,7 @@ const {
   readContentTxt,
   createOffer,
   createComment,
+  sendResponse
 } = require(`../../utils`);
 const {
   offerValidator,
@@ -21,23 +22,6 @@ const offersRouter = new Router();
 const express = require(`express`);
 const bodyParser = require(`body-parser`);
 const jsonParser = bodyParser.json();
-const sendResponse = (res, statusCode, message) => {
-  const template = `
-    <!Doctype html>
-      <html lang="ru">
-      <head>
-        <title>With love from Node</title>
-      </head>
-      <body>${message}</body>
-    </html>`.trim();
-
-  res.statusCode = statusCode;
-  res.writeHead(statusCode, {
-    "Content-Type": `text/html; charset=UTF-8`,
-  });
-
-  res.end(template);
-};
 
 const returnPropertyList = async (arr, prop) => {
   return arr.map((item) => {

@@ -9,6 +9,7 @@ const offerKeys = [
   `sum`,
 ];
 const {HttpCode} = require(`../../HttpCode`);
+const {sendResponse} = require(`../../utils.js`);
 
 const offerValidator = (req, res, next) => {
   const newOffer = req.body;
@@ -16,7 +17,7 @@ const offerValidator = (req, res, next) => {
   const keysExists = offerKeys.every((key) => keys.includes(key));
 
   if (!keysExists) {
-    res.status(HttpCode.BAD_REQUEST).send(`Bad request`);
+    sendResponse(res, HttpCode.BAD_REQUEST, `Bad request`);
   }
 
   next();
@@ -28,7 +29,7 @@ const offerPutValidator = (req, res, next) => {
   const keysExists = offerKeys.some((key) => keys.includes(key));
 
   if (!keysExists) {
-    res.status(HttpCode.BAD_REQUEST).send(`Bad request`);
+    sendResponse(res, HttpCode.BAD_REQUEST, `no such fields in offer`);
   }
 
   next();
@@ -43,5 +44,5 @@ const commentValidator = (req, res, next) => {
 module.exports = {
   offerValidator,
   commentValidator,
-  offerPutValidator
+  offerPutValidator,
 };
