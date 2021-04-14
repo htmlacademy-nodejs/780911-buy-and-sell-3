@@ -80,10 +80,10 @@ module.exports = {
     });
 
     api.use(
-      `/offers`,
-      offersRouter.get(`/`, async (req, res) => {
-        res.json(allOffersList);
-      })
+        `/offers`,
+        offersRouter.get(`/`, async (req, res) => {
+          res.json(allOffersList);
+        })
     );
 
     api.post(`/offers`, jsonParser, offerValidator, (req, res) => {
@@ -106,24 +106,23 @@ module.exports = {
     });
 
     api.put(
-      `/offers/:offerId`,
-      jsonParser,
-      offerPutValidator,
-      async (req, res) => {
-        try {
-          const offer = await returnItemByID(allOffersList, req.params.offerId);
+        `/offers/:offerId`,
+        jsonParser,
+        offerPutValidator,
+        async (req, res) => {
+          try {
+            let offer = await returnItemByID(allOffersList, req.params.offerId);
 
-          if (offer) {
-            // offer.title = `Updated ${offer.title}`;
-            //TODO: add function, which takes req.body key and replace like offer = {...offer, ...req.body};
-            res.json(offer);
-          } else {
-            sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
+            if (offer) {
+              offer = {...offer, ...req.body};
+              res.json(offer);
+            } else {
+              sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
+            }
+          } catch (err) {
+            sendResponse(res, HttpCode.NOT_FOUND, err);
           }
-        } catch (err) {
-          sendResponse(res, HttpCode.NOT_FOUND, err);
         }
-      }
     );
 
     api.delete(`/offers/:offerId`, async (req, res) => {
@@ -132,7 +131,7 @@ module.exports = {
 
         if (offer) {
           allOffersList = allOffersList.filter(
-            (item) => item.id !== req.params.offerId
+              (item) => item.id !== req.params.offerId
           );
 
           if (allOffersList.length < 1) {
@@ -142,9 +141,9 @@ module.exports = {
           }
         } else {
           sendResponse(
-            res,
-            HttpCode.NOT_FOUND,
-            `Offer with id ${req.params.offerId} not found`
+              res,
+              HttpCode.NOT_FOUND,
+              `Offer with id ${req.params.offerId} not found`
           );
         }
       } catch (err) {
@@ -170,13 +169,13 @@ module.exports = {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
         const comment = await returnItemByID(
-          offer.comments,
-          req.params.commentId
+            offer.comments,
+            req.params.commentId
         );
 
         if (offer && comment) {
           const newCommentsList = offer.comments.filter(
-            (item) => item.id !== req.params.commentId
+              (item) => item.id !== req.params.commentId
           );
 
           offer.comments = newCommentsList;
@@ -190,20 +189,20 @@ module.exports = {
     });
 
     api.post(
-      `/offers/:offerId/comments/`,
-      jsonParser,
-      commentValidator,
-      async (req, res) => {
-        try {
-          const offer = await returnItemByID(allOffersList, req.params.offerId);
-          const newComment = createComment(req.body.text);
+        `/offers/:offerId/comments/`,
+        jsonParser,
+        commentValidator,
+        async (req, res) => {
+          try {
+            const offer = await returnItemByID(allOffersList, req.params.offerId);
+            const newComment = createComment(req.body.text);
 
-          offer.comments.push(newComment);
-          res.json(offer);
-        } catch (err) {
-          sendResponse(res, HttpCode.NOT_FOUND, err);
+            offer.comments.push(newComment);
+            res.json(offer);
+          } catch (err) {
+            sendResponse(res, HttpCode.NOT_FOUND, err);
+          }
         }
-      }
     );
 
     api.get(`/search`, async (req, res) => {
