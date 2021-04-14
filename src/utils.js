@@ -25,6 +25,10 @@ const createCommentsList = (arr, length) => {
   return commentsArr;
 };
 
+const createComment = (text) => {
+  return {id: nanoid(), text};
+};
+
 const getRandomInt = (min, max) => {
   min = Math.ceil(min);
   max = Math.floor(max);
@@ -89,7 +93,7 @@ const generateOffers = (count, titles, categories, sentences, comments) =>
       category: [categories[getRandomInt(0, categories.length - 1)]],
       description: shuffle(sentences).slice(1, 5).join(` `),
       picture: getPictureFileName(
-          getRandomInt(PictureRestrict.MIN, PictureRestrict.MAX)
+        getRandomInt(PictureRestrict.MIN, PictureRestrict.MAX)
       ),
       title: titles[getRandomInt(0, titles.length - 1)],
       type: Object.keys(OfferType)[
@@ -109,4 +113,5 @@ module.exports = {
   getPictureFileName,
   createCommentsList,
   createOffer,
+  createComment
 };

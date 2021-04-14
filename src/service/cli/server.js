@@ -3,16 +3,19 @@
 const DEFAULT_PORT = 3000;
 const MOCK_FILE_PATH = `./mocks.json`;
 const FILE_CATEGORIES_PATH = `./data/categories.txt`;
-const FILE_COMMENTS_PATH = `./data/comments.txt`;
 const chalk = require(`chalk`);
 const {HttpCode} = require(`../../HttpCode`);
 const {
   readContentJSON,
   readContentTxt,
-  createCommentsList,
   createOffer,
+  createComment,
 } = require(`../../utils`);
-const {offerValidator} = require(`../middlewares/offerValidator`);
+const {
+  offerValidator,
+  commentValidator,
+  offerPutValidator,
+} = require(`../middlewares/validators`);
 const {Router} = require(`express`);
 const offersRouter = new Router();
 const express = require(`express`);
@@ -60,7 +63,6 @@ module.exports = {
 
     const titlesList = await returnPropertyList(allOffersList, `title`);
     const categories = await readContentTxt(FILE_CATEGORIES_PATH);
-    const comments = await readContentTxt(FILE_COMMENTS_PATH);
     const message = titlesList.map((post) => `<li>${post}</li>`).join(``);
 
     const app = express();
@@ -78,10 +80,10 @@ module.exports = {
     });
 
     api.use(
-        `/offers`,
-        offersRouter.get(`/`, async (req, res) => {
-          res.json(allOffersList);
-        })
+      `/offers`,
+      offersRouter.get(`/`, async (req, res) => {
+        res.json(allOffersList);
+      })
     );
 
     api.post(`/offers`, jsonParser, offerValidator, (req, res) => {
@@ -103,20 +105,26 @@ module.exports = {
       }
     });
 
-    api.put(`/offers/:offerId`, async (req, res) => {
-      try {
-        const offer = await returnItemByID(allOffersList, req.params.offerId);
+    api.put(
+      `/offers/:offerId`,
+      jsonParser,
+      offerPutValidator,
+      async (req, res) => {
+        try {
+          const offer = await returnItemByID(allOffersList, req.params.offerId);
 
-        if (offer) {
-          offer.title = `Updated ${offer.title}`;
-          res.json(offer);
-        } else {
-          sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
+          if (offer) {
+            // offer.title = `Updated ${offer.title}`;
+            //TODO: add function, which takes req.body key and replace like offer = {...offer, ...req.body};
+            res.json(offer);
+          } else {
+            sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
+          }
+        } catch (err) {
+          sendResponse(res, HttpCode.NOT_FOUND, err);
         }
-      } catch (err) {
-        sendResponse(res, HttpCode.NOT_FOUND, err);
       }
-    });
+    );
 
     api.delete(`/offers/:offerId`, async (req, res) => {
       try {
@@ -124,7 +132,7 @@ module.exports = {
 
         if (offer) {
           allOffersList = allOffersList.filter(
-              (item) => item.id !== req.params.offerId
+            (item) => item.id !== req.params.offerId
           );
 
           if (allOffersList.length < 1) {
@@ -134,9 +142,9 @@ module.exports = {
           }
         } else {
           sendResponse(
-              res,
-              HttpCode.NOT_FOUND,
-              `Offer with id ${req.params.offerId} not found`
+            res,
+            HttpCode.NOT_FOUND,
+            `Offer with id ${req.params.offerId} not found`
           );
         }
       } catch (err) {
@@ -162,13 +170,13 @@ module.exports = {
       try {
         const offer = await returnItemByID(allOffersList, req.params.offerId);
         const comment = await returnItemByID(
-            offer.comments,
-            req.params.commentId
+          offer.comments,
+          req.params.commentId
         );
 
         if (offer && comment) {
           const newCommentsList = offer.comments.filter(
-              (item) => item.id !== req.params.commentId
+            (item) => item.id !== req.params.commentId
           );
 
           offer.comments = newCommentsList;
@@ -181,17 +189,22 @@ module.exports = {
       }
     });
 
-    api.post(`/offers/:offerId/comments/`, async (req, res) => {
-      try {
-        const offer = await returnItemByID(allOffersList, req.params.offerId);
-        const newComment = createCommentsList(comments, 1);
+    api.post(
+      `/offers/:offerId/comments/`,
+      jsonParser,
+      commentValidator,
+      async (req, res) => {
+        try {
+          const offer = await returnItemByID(allOffersList, req.params.offerId);
+          const newComment = createComment(req.body.text);
 
-        offer.comments.push(newComment[0]);
-        res.json(offer);
-      } catch (err) {
-        sendResponse(res, HttpCode.NOT_FOUND, err);
+          offer.comments.push(newComment);
+          res.json(offer);
+        } catch (err) {
+          sendResponse(res, HttpCode.NOT_FOUND, err);
+        }
       }
-    });
+    );
 
     api.get(`/search`, async (req, res) => {
       const foundByTitleArr = allOffersList.filter((item) => {

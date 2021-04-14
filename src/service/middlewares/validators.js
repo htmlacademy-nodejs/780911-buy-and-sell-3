@@ -22,6 +22,26 @@ const offerValidator = (req, res, next) => {
   next();
 };
 
+const offerPutValidator = (req, res, next) => {
+  const newOffer = req.body;
+  const keys = Object.keys(newOffer);
+  const keysExists = offerKeys.some((key) => keys.includes(key));
+
+  if (!keysExists) {
+    res.status(HttpCode.BAD_REQUEST).send(`Bad request`);
+  }
+
+  next();
+};
+
+const commentValidator = (req, res, next) => {
+  if (`text` in req.body) {
+    next();
+  }
+};
+
 module.exports = {
   offerValidator,
+  commentValidator,
+  offerPutValidator
 };
