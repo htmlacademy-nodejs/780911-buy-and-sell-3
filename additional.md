@@ -7,28 +7,19 @@
 - - Экспорт
 
 
-как запускать команды
+команды
 
-1 задание
-
-node src/service/service.js --generate 
+node src/service/service.js --generate 5
 src/service/service.js --version
 npm run server - to run server
 node src/index.js - to run express
 
 
-PUG
+    GET /api/search?query= — возвращает результаты поиска. Поиск объявлений выполняется по наименованию. Объявление соответствует поиску в случае наличия хотя бы одного вхождения искомой фразы.
 
-html2pug < ./markup/main.html > ./src/express/templates/main.pug
-html2pug < ./markup/my-tickets.html > ./src/express/templates/my-tickets.pug
-html2pug < ./markup/new-ticket.html > ./src/express/templates/new-ticket.pug
-html2pug < ./markup/login.html > ./src/express/templates/login.pug
-html2pug < ./markup/search-result.html > ./src/express/templates/search-result.pug
-html2pug < ./markup/sign-up.html > ./src/express/templates/sign-up.pug
-html2pug < ./markup/ticket.html > ./src/express/templates/ticket.pug
-html2pug < ./markup/sign-up.html > ./src/express/templates/sign-up.pug
+I need to write get method for search with Array.filter and return it 
+then test everything manually
 
 
-
-
-
+to test query
+~~http://localhost:3000/search?query=hohohho~~
