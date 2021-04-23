@@ -37,11 +37,12 @@ const returnItemByID = async (arr, id) => {
   return offer;
 };
 
-const app = express();
-
 const name = `--server`;
 const run = async (args) => {
+  const app = express();
+
   const port = args ? Number.parseInt(args[0], 10) : DEFAULT_PORT;
+
   const notFoundMessageText = `Not found`;
 
   let allOffersList = await readContentJSON(MOCK_FILE_PATH);
@@ -49,8 +50,6 @@ const run = async (args) => {
   const titlesList = await returnPropertyList(allOffersList, `title`);
   const categories = await readContentTxt(FILE_CATEGORIES_PATH);
   const message = titlesList.map((post) => `<li>${post}</li>`).join(``);
-
-
 
   // eslint-disable-next-line new-cap
   const api = express.Router();
@@ -218,12 +217,24 @@ const run = async (args) => {
     sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
   });
 
+  app.on("ready", function () {
+    app.listen(port, (err) => {
+      if (err) {
+        return console.error(`Ошибка при создании сервера`, err);
+      }
+      return console.info(chalk.green(`Ожидаю соединений на ${port}`));
+    });
+  });
+
   app.listen(port, (err) => {
     if (err) {
       return console.error(`Ошибка при создании сервера`, err);
     }
     return console.info(chalk.green(`Ожидаю соединений на ${port}`));
   });
+
+
+  return app;
 };
 
 module.exports = {
