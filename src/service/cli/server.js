@@ -38,8 +38,10 @@ const returnItemByID = async (arr, id) => {
 };
 
 const name = `--server`;
+
+let app;
 const run = async (args) => {
-  const app = express();
+  app = express();
 
   const port = args ? Number.parseInt(args[0], 10) : DEFAULT_PORT;
 
@@ -213,26 +215,16 @@ const run = async (args) => {
     }
   });
 
-  app.use(function (req, res) {
-    sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
-  });
+  // app.use(function (req, res) {
+  //   sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
+  // });
 
-  app.on("ready", function () {
-    app.listen(port, (err) => {
-      if (err) {
-        return console.error(`Ошибка при создании сервера`, err);
-      }
-      return console.info(chalk.green(`Ожидаю соединений на ${port}`));
-    });
-  });
-
-  app.listen(port, (err) => {
-    if (err) {
-      return console.error(`Ошибка при создании сервера`, err);
-    }
-    return console.info(chalk.green(`Ожидаю соединений на ${port}`));
-  });
-
+  // app.listen(port, (err) => {
+  //   if (err) {
+  //     return console.error(`Ошибка при создании сервера`, err);
+  //   }
+  //   return console.info(chalk.green(`Ожидаю соединений на ${port}`));
+  // });
 
   return app;
 };
@@ -240,4 +232,5 @@ const run = async (args) => {
 module.exports = {
   name,
   run,
+  app
 };

@@ -1,11 +1,26 @@
 "use strict";
 
 const request = require(`supertest`);
-const server = require(`./server`);
+const {run} = require(`./server`);
 
-describe(`Books API end-points`, async () => {
+let app;
+beforeEach(async () => {
+  app = await run();
+});
 
-  test(`When get books status code should be 200`, async (done) => {
-    const res = await request(server).get(`/api/offers`).expect(200, done);
+// afterAll(() => {
+//   process.exit(0);
+// });
+
+describe(`Books API end-points`, () => {
+  test(`When get books status code should be 200`, async () => {
+    const res = await request(app).get(`/api/offers`);
+    // console.log("res", res);
+    expect(res.statusCode).toBe(200);
   });
+
+  // test(`When get books status code should be 200`, async () => {
+  //   const res = await request(server).get(`/api/books`);
+  //   expect(res.statusCode).toBe(200);
+  // });
 });
