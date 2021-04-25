@@ -18,7 +18,7 @@ let app;
 const server = async () => {
   app = express();
   const apiRoutes = require(`./api-routes`);
-
+  const notFoundMessageText = `Not found`;
   let allOffersList = await readContentJSON(MOCK_FILE_PATH);
   const titlesList = await returnPropertyList(allOffersList, `title`);
   const message = titlesList.map((post) => `<li>${post}</li>`).join(``);
@@ -33,9 +33,9 @@ const server = async () => {
     }
   });
 
-  app.use(function (req, res) {
-    sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
-  });
+  // app.use(function (req, res) {
+  //   sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
+  // });
 
   return app;
 };

@@ -1,11 +1,11 @@
 "use strict";
 
 const request = require(`supertest`);
-const {run} = require(`./server`);
+const {server} = require(`./server`);
 let app;
 
 beforeEach(async () => {
-  app = await run();
+  app = await server();
 });
 
 describe(`Books API end-points`, () => {
