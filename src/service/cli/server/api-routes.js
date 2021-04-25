@@ -1,51 +1,41 @@
 "use strict";
 
-const DEFAULT_PORT = 3000;
+const notFoundMessageText = `Not found`;
 const MOCK_FILE_PATH = `./mocks.json`;
 const FILE_CATEGORIES_PATH = `./data/categories.txt`;
-const chalk = require(`chalk`);
-const {HttpCode} = require(`../../HttpCode`);
+const {HttpCode} = require(`../../../HttpCode`);
 const {
   readContentJSON,
   readContentTxt,
   createOffer,
   createComment,
   sendResponse,
-} = require(`../../utils`);
+} = require(`../../../utils`);
 const {
   offerValidator,
   commentValidator,
   offerPutValidator,
-} = require(`../middlewares/validators`);
-const {Router} = require(`express`);
-const offersRouter = new Router();
-const express = require(`express`);
+} = require(`../../middlewares/validators`);
 const bodyParser = require(`body-parser`);
 const jsonParser = bodyParser.json();
 
-const returnPropertyList = async (arr, prop) => {
-  return arr.map((item) => {
-    return item[prop];
-  });
-};
 
-const returnItemByID = async (arr, id) => {
-  const offer = arr.find((item) => {
-    return item.id === id;
-  });
+const api = async () => {
+  const {Router} = require(`express`);
+  const router = new Router();
+  const returnPropertyList = async (arr, prop) => {
+    return arr.map((item) => {
+      return item[prop];
+    });
+  };
 
-  return offer;
-};
+  const returnItemByID = async (arr, id) => {
+    const offer = arr.find((item) => {
+      return item.id === id;
+    });
 
-const name = `--server`;
-
-let app;
-const run = async (args) => {
-  app = express();
-
-  const port = args ? Number.parseInt(args[0], 10) : DEFAULT_PORT;
-
-  const notFoundMessageText = `Not found`;
+    return offer;
+  };
 
   let allOffersList = await readContentJSON(MOCK_FILE_PATH);
 
@@ -53,32 +43,21 @@ const run = async (args) => {
   const categories = await readContentTxt(FILE_CATEGORIES_PATH);
   const message = titlesList.map((post) => `<li>${post}</li>`).join(``);
 
-  // eslint-disable-next-line new-cap
-  const api = express.Router();
-  app.use(`/api`, api);
-
-  app.get(`/`, async (req, res) => {
+  router.get(`/offers`, (req, res) => {
     try {
-      sendResponse(res, HttpCode.OK, `<ul>${message}</ul>`);
-    } catch (err) {
-      sendResponse(res, HttpCode.NOT_FOUND, err);
+      res.json(allOffersList);
+    } catch (e) {
+      sendResponse(res, HttpCode.NOT_FOUND, e);
     }
   });
 
-  api.use(
-    `/offers`,
-    offersRouter.get(`/`, async (req, res) => {
-      res.json(allOffersList);
-    })
-  );
-
-  api.post(`/offers`, jsonParser, offerValidator, (req, res) => {
+  router.post(`/offers`, jsonParser, offerValidator, (req, res) => {
     const newOffer = createOffer(req.body);
     allOffersList.push(newOffer);
     res.json(allOffersList[allOffersList.length - 1]);
   });
 
-  api.get(`/offers/:offerId`, async (req, res) => {
+  router.get(`/offers/:offerId`, async (req, res) => {
     try {
       const offer = await returnItemByID(allOffersList, req.params.offerId);
       if (offer) {
@@ -91,7 +70,7 @@ const run = async (args) => {
     }
   });
 
-  api.put(
+  router.put(
     `/offers/:offerId`,
     jsonParser,
     offerPutValidator,
@@ -111,7 +90,7 @@ const run = async (args) => {
     }
   );
 
-  api.delete(`/offers/:offerId`, async (req, res) => {
+  router.delete(`/offers/:offerId`, async (req, res) => {
     try {
       const offer = await returnItemByID(allOffersList, req.params.offerId);
 
@@ -137,7 +116,7 @@ const run = async (args) => {
     }
   });
 
-  api.get(`/offers/:offerId/comments`, async (req, res) => {
+  router.get(`/offers/:offerId/comments`, async (req, res) => {
     try {
       const offer = await returnItemByID(allOffersList, req.params.offerId);
 
@@ -151,7 +130,7 @@ const run = async (args) => {
     }
   });
 
-  api.delete(`/offers/:offerId/comments/:commentId`, async (req, res) => {
+  router.delete(`/offers/:offerId/comments/:commentId`, async (req, res) => {
     try {
       const offer = await returnItemByID(allOffersList, req.params.offerId);
       const comment = await returnItemByID(
@@ -174,7 +153,7 @@ const run = async (args) => {
     }
   });
 
-  api.post(
+  router.post(
     `/offers/:offerId/comments/`,
     jsonParser,
     commentValidator,
@@ -191,7 +170,7 @@ const run = async (args) => {
     }
   );
 
-  api.get(`/search`, async (req, res) => {
+  router.get(`/search`, async (req, res) => {
     const foundByTitleArr = allOffersList.filter((item) => {
       return item.title.includes(req.query.query);
     });
@@ -207,7 +186,7 @@ const run = async (args) => {
     }
   });
 
-  api.use(`/categories`, async (req, res) => {
+  router.use(`/categories`, async (req, res) => {
     try {
       res.json(categories);
     } catch (err) {
@@ -215,22 +194,7 @@ const run = async (args) => {
     }
   });
 
-  // app.use(function (req, res) {
-  //   sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
-  // });
-
-  // app.listen(port, (err) => {
-  //   if (err) {
-  //     return console.error(`Ошибка при создании сервера`, err);
-  //   }
-  //   return console.info(chalk.green(`Ожидаю соединений на ${port}`));
-  // });
-
-  return app;
+  return router;
 };
 
-module.exports = {
-  name,
-  run,
-  app
-};
+module.exports = api;
