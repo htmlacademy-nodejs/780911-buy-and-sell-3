@@ -18,7 +18,6 @@ let app;
 const server = async () => {
   app = express();
   const apiRoutes = require(`./api-routes`);
-  const notFoundMessageText = `Not found`;
   let allOffersList = await readContentJSON(MOCK_FILE_PATH);
   const titlesList = await returnPropertyList(allOffersList, `title`);
   const message = titlesList.map((post) => `<li>${post}</li>`).join(``);
@@ -27,7 +26,7 @@ const server = async () => {
 
   app.get(`/`, async (req, res) => {
     try {
-      sendResponse(res, HttpCode.OK, `<ul>${message}</ul>`);
+      sendResponse(res, HttpCode.OK, `<p>default page</p></p><ul>${message}</ul>`);
     } catch (err) {
       sendResponse(res, HttpCode.NOT_FOUND, err);
     }

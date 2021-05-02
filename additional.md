@@ -14,11 +14,15 @@
 - npm run server - to run server
 - node src/index.js - to run express
 
+возвращает результаты поиска. 
+Поиск объявлений выполняется по наименованию. 
+Объявление соответствует поиску в случае наличия хотя бы одного вхождения искомой фразы.
 
-    GET /api/search?query= — возвращает результаты поиска. Поиск объявлений выполняется по наименованию. Объявление соответствует поиску в случае наличия хотя бы одного вхождения искомой фразы.
+to test query in postman
+GET => http://localhost:3000/api/search?query=hohohho
+GET => http://localhost:3000/api/search?query=Продам книги Стивена Кинга
 
 
+Категории запрос
 
-
-to test query in postman 
-http://localhost:3000/search?query=hohohho
+GET => http://localhost:3000/api/categories

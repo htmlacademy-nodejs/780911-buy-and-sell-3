@@ -19,7 +19,6 @@ const {
 const bodyParser = require(`body-parser`);
 const jsonParser = bodyParser.json();
 
-
 const api = async () => {
   const {Router} = require(`express`);
   const router = new Router();
@@ -38,10 +37,7 @@ const api = async () => {
   };
 
   let allOffersList = await readContentJSON(MOCK_FILE_PATH);
-
-  const titlesList = await returnPropertyList(allOffersList, `title`);
   const categories = await readContentTxt(FILE_CATEGORIES_PATH);
-  const message = titlesList.map((post) => `<li>${post}</li>`).join(``);
 
   router.get(`/offers`, (req, res) => {
     try {
@@ -186,7 +182,7 @@ const api = async () => {
     }
   });
 
-  router.use(`/categories`, async (req, res) => {
+  router.get(`/categories`, async (req, res) => {
     try {
       res.json(categories);
     } catch (err) {
