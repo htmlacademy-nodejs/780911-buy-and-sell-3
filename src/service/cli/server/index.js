@@ -2,7 +2,8 @@
 
 const {server} = require(`./server`);
 const DEFAULT_PORT = 3000;
-const chalk = require(`chalk`);
+const {getLogger} = require(`./logger`);
+const logger = getLogger();
 
 const name = `--server`;
 let app;
@@ -12,9 +13,9 @@ const run = async (args) => {
 
   app.listen(port, (err) => {
     if (err) {
-      return console.error(`Ошибка при создании сервера`, err);
+      logger.error(`Ошибка при создании сервера`, err);
     }
-    return console.info(chalk.green(`Ожидаю соединений на ${port}`));
+    return logger.info(`Ожидаю соединений на ${port}`);
   });
 };
 

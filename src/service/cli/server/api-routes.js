@@ -18,7 +18,8 @@ const {
 } = require(`../../middlewares/validators`);
 const bodyParser = require(`body-parser`);
 const jsonParser = bodyParser.json();
-
+const {getLogger} = require(`./logger`);
+const logger = getLogger();
 const api = async () => {
   const {Router} = require(`express`);
   const router = new Router();
@@ -39,10 +40,17 @@ const api = async () => {
   let allOffersList = await readContentJSON(MOCK_FILE_PATH);
   const categories = await readContentTxt(FILE_CATEGORIES_PATH);
 
+  router.use(function (req, res, next) {
+    logger.debug(`Start request to url ${req.url}`);
+    next();
+  });
+
   router.get(`/offers`, (req, res) => {
     try {
       res.json(allOffersList);
+      logger.info(`End request with status code ${res.statusCode}`);
     } catch (e) {
+      logger.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, e);
     }
   });
@@ -51,6 +59,7 @@ const api = async () => {
     const newOffer = createOffer(req.body);
     allOffersList.push(newOffer);
     res.json(allOffersList[allOffersList.length - 1]);
+    logger.info(`End request with status code ${res.statusCode}`);
   });
 
   router.get(`/offers/:offerId`, async (req, res) => {
@@ -58,10 +67,13 @@ const api = async () => {
       const offer = await returnItemByID(allOffersList, req.params.offerId);
       if (offer) {
         res.json(offer);
+        logger.info(`End request with status code ${res.statusCode}`);
       } else {
+        logger.error(`End request with error ${res.statusCode}`);
         sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
       }
     } catch (err) {
+      logger.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, err);
     }
   });
@@ -77,10 +89,13 @@ const api = async () => {
         if (offer) {
           offer = {...offer, ...req.body};
           res.json(offer);
+          logger.info(`End request with status code ${res.statusCode}`);
         } else {
+          logger.error(`End request with error ${res.statusCode}`);
           sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
         }
       } catch (err) {
+        logger.error(`End request with error ${res.statusCode}`);
         sendResponse(res, HttpCode.NOT_FOUND, err);
       }
     }
@@ -96,9 +111,11 @@ const api = async () => {
         );
 
         if (allOffersList.length < 1) {
+          logger.error(`End request with error ${res.statusCode}`);
           sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
         } else {
           res.json(allOffersList);
+          logger.info(`End request with status code ${res.statusCode}`);
         }
       } else {
         sendResponse(
@@ -108,6 +125,7 @@ const api = async () => {
         );
       }
     } catch (err) {
+      logger.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, err);
     }
   });
@@ -118,10 +136,12 @@ const api = async () => {
 
       if (offer) {
         res.json(offer.comments);
+        logger.info(`End request with status code ${res.statusCode}`);
       } else {
         sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
       }
     } catch (err) {
+      logger.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, err);
     }
   });
@@ -141,10 +161,13 @@ const api = async () => {
 
         offer.comments = newCommentsList;
         res.json(offer);
+        logger.info(`End request with status code ${res.statusCode}`);
       } else {
+        logger.error(`End request with error ${res.statusCode}`);
         sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
       }
     } catch (err) {
+      logger.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, err);
     }
   });
@@ -161,6 +184,7 @@ const api = async () => {
         offer.comments.push(newComment);
         res.json(offer);
       } catch (err) {
+        logger.error(`End request with error ${res.statusCode}`);
         sendResponse(res, HttpCode.NOT_FOUND, err);
       }
     }
@@ -170,14 +194,15 @@ const api = async () => {
     const foundByTitleArr = allOffersList.filter((item) => {
       return item.title.includes(req.query.query);
     });
-
     if (foundByTitleArr.length) {
       try {
         res.json(foundByTitleArr);
       } catch (err) {
+        logger.error(`End request with error ${res.statusCode}`);
         sendResponse(res, HttpCode.NOT_FOUND, err);
       }
     } else {
+      logger.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, `no offers with such title`);
     }
   });
@@ -186,6 +211,7 @@ const api = async () => {
     try {
       res.json(categories);
     } catch (err) {
+      logger.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, err);
     }
   });
