@@ -19,16 +19,10 @@ const {
 const bodyParser = require(`body-parser`);
 const jsonParser = bodyParser.json();
 const {getLogger} = require(`./logger`);
-const logger = getLogger();
+const log = getLogger();
 const api = async () => {
   const {Router} = require(`express`);
   const router = new Router();
-  const returnPropertyList = async (arr, prop) => {
-    return arr.map((item) => {
-      return item[prop];
-    });
-  };
-
   const returnItemByID = async (arr, id) => {
     const offer = arr.find((item) => {
       return item.id === id;
@@ -41,16 +35,16 @@ const api = async () => {
   const categories = await readContentTxt(FILE_CATEGORIES_PATH);
 
   router.use(function (req, res, next) {
-    logger.debug(`Start request to url ${req.url}`);
+    log.debug(`Start request to url ${req.url}`);
     next();
   });
 
   router.get(`/offers`, (req, res) => {
     try {
       res.json(allOffersList);
-      logger.info(`End request with status code ${res.statusCode}`);
+      log.info(`End request with status code ${res.statusCode}`);
     } catch (e) {
-      logger.error(`End request with error ${res.statusCode}`);
+      log.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, e);
     }
   });
@@ -59,7 +53,7 @@ const api = async () => {
     const newOffer = createOffer(req.body);
     allOffersList.push(newOffer);
     res.json(allOffersList[allOffersList.length - 1]);
-    logger.info(`End request with status code ${res.statusCode}`);
+    log.info(`End request with status code ${res.statusCode}`);
   });
 
   router.get(`/offers/:offerId`, async (req, res) => {
@@ -67,38 +61,38 @@ const api = async () => {
       const offer = await returnItemByID(allOffersList, req.params.offerId);
       if (offer) {
         res.json(offer);
-        logger.info(`End request with status code ${res.statusCode}`);
+        log.info(`End request with status code ${res.statusCode}`);
       } else {
-        logger.error(`End request with error ${res.statusCode}`);
+        log.error(`End request with error ${res.statusCode}`);
         sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
       }
     } catch (err) {
-      logger.error(`End request with error ${res.statusCode}`);
+      log.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, err);
     }
   });
 
   router.put(
-    `/offers/:offerId`,
-    jsonParser,
-    offerPutValidator,
-    async (req, res) => {
-      try {
-        let offer = await returnItemByID(allOffersList, req.params.offerId);
+      `/offers/:offerId`,
+      jsonParser,
+      offerPutValidator,
+      async (req, res) => {
+        try {
+          let offer = await returnItemByID(allOffersList, req.params.offerId);
 
-        if (offer) {
-          offer = {...offer, ...req.body};
-          res.json(offer);
-          logger.info(`End request with status code ${res.statusCode}`);
-        } else {
-          logger.error(`End request with error ${res.statusCode}`);
-          sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
+          if (offer) {
+            offer = {...offer, ...req.body};
+            res.json(offer);
+            log.info(`End request with status code ${res.statusCode}`);
+          } else {
+            log.error(`End request with error ${res.statusCode}`);
+            sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
+          }
+        } catch (err) {
+          log.error(`End request with error ${res.statusCode}`);
+          sendResponse(res, HttpCode.NOT_FOUND, err);
         }
-      } catch (err) {
-        logger.error(`End request with error ${res.statusCode}`);
-        sendResponse(res, HttpCode.NOT_FOUND, err);
       }
-    }
   );
 
   router.delete(`/offers/:offerId`, async (req, res) => {
@@ -107,25 +101,25 @@ const api = async () => {
 
       if (offer) {
         allOffersList = allOffersList.filter(
-          (item) => item.id !== req.params.offerId
+            (item) => item.id !== req.params.offerId
         );
 
         if (allOffersList.length < 1) {
-          logger.error(`End request with error ${res.statusCode}`);
+          log.error(`End request with error ${res.statusCode}`);
           sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
         } else {
           res.json(allOffersList);
-          logger.info(`End request with status code ${res.statusCode}`);
+          log.info(`End request with status code ${res.statusCode}`);
         }
       } else {
         sendResponse(
-          res,
-          HttpCode.NOT_FOUND,
-          `Offer with id ${req.params.offerId} not found`
+            res,
+            HttpCode.NOT_FOUND,
+            `Offer with id ${req.params.offerId} not found`
         );
       }
     } catch (err) {
-      logger.error(`End request with error ${res.statusCode}`);
+      log.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, err);
     }
   });
@@ -136,12 +130,12 @@ const api = async () => {
 
       if (offer) {
         res.json(offer.comments);
-        logger.info(`End request with status code ${res.statusCode}`);
+        log.info(`End request with status code ${res.statusCode}`);
       } else {
         sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
       }
     } catch (err) {
-      logger.error(`End request with error ${res.statusCode}`);
+      log.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, err);
     }
   });
@@ -150,44 +144,44 @@ const api = async () => {
     try {
       const offer = await returnItemByID(allOffersList, req.params.offerId);
       const comment = await returnItemByID(
-        offer.comments,
-        req.params.commentId
+          offer.comments,
+          req.params.commentId
       );
 
       if (offer && comment) {
         const newCommentsList = offer.comments.filter(
-          (item) => item.id !== req.params.commentId
+            (item) => item.id !== req.params.commentId
         );
 
         offer.comments = newCommentsList;
         res.json(offer);
-        logger.info(`End request with status code ${res.statusCode}`);
+        log.info(`End request with status code ${res.statusCode}`);
       } else {
-        logger.error(`End request with error ${res.statusCode}`);
+        log.error(`End request with error ${res.statusCode}`);
         sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
       }
     } catch (err) {
-      logger.error(`End request with error ${res.statusCode}`);
+      log.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, err);
     }
   });
 
   router.post(
-    `/offers/:offerId/comments/`,
-    jsonParser,
-    commentValidator,
-    async (req, res) => {
-      try {
-        const offer = await returnItemByID(allOffersList, req.params.offerId);
-        const newComment = createComment(req.body.text);
+      `/offers/:offerId/comments/`,
+      jsonParser,
+      commentValidator,
+      async (req, res) => {
+        try {
+          const offer = await returnItemByID(allOffersList, req.params.offerId);
+          const newComment = createComment(req.body.text);
 
-        offer.comments.push(newComment);
-        res.json(offer);
-      } catch (err) {
-        logger.error(`End request with error ${res.statusCode}`);
-        sendResponse(res, HttpCode.NOT_FOUND, err);
+          offer.comments.push(newComment);
+          res.json(offer);
+        } catch (err) {
+          log.error(`End request with error ${res.statusCode}`);
+          sendResponse(res, HttpCode.NOT_FOUND, err);
+        }
       }
-    }
   );
 
   router.get(`/search`, async (req, res) => {
@@ -198,11 +192,11 @@ const api = async () => {
       try {
         res.json(foundByTitleArr);
       } catch (err) {
-        logger.error(`End request with error ${res.statusCode}`);
+        log.error(`End request with error ${res.statusCode}`);
         sendResponse(res, HttpCode.NOT_FOUND, err);
       }
     } else {
-      logger.error(`End request with error ${res.statusCode}`);
+      log.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, `no offers with such title`);
     }
   });
@@ -211,7 +205,7 @@ const api = async () => {
     try {
       res.json(categories);
     } catch (err) {
-      logger.error(`End request with error ${res.statusCode}`);
+      log.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, err);
     }
   });

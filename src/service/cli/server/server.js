@@ -22,25 +22,26 @@ const server = async () => {
   const titlesList = await returnPropertyList(allOffersList, `title`);
   const message = titlesList.map((post) => `<li>${post}</li>`).join(``);
   const {getLogger} = require(`./logger`);
-  const logger = getLogger();
+  const log = getLogger();
 
   app.use(`/api`, await apiRoutes());
 
   app.use(function (req, res, next) {
-    logger.info(`Start request to url ${req.url}`);
+    log.info(`Start request to url ${req.url}`);
     next();
   });
   app.get(`/`, async (req, res) => {
     try {
       sendResponse(res, HttpCode.OK, `<p>default page</p></p><ul>${message}</ul>`);
+      log.info(`End request with status code ${res.statusCode}`);
     } catch (err) {
-      logger.error(`End request with error ${res.statusCode}`);
+      log.error(`End request with error ${res.statusCode}`);
       sendResponse(res, HttpCode.NOT_FOUND, err);
     }
   });
 
   app.use(function (req, res) {
-    logger.error(`requested page is not found ${res.statusCode}`);
+    log.error(`requested page is not found ${res.statusCode}`);
     sendResponse(res, HttpCode.NOT_FOUND, notFoundMessageText);
   });
 
