@@ -16,3 +16,6 @@ build/
 
 # file with mock data
 mocks.json
+
+# logs from pino
+./src/service/logs

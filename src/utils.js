@@ -47,12 +47,12 @@ const shuffle = (someArray) => {
   return someArray;
 };
 
-const zeroFill = (number, width) => {
-  width -= number.toString().length;
-  if (width > 0) {
-    return new Array(width + (/\./.test(number) ? 2 : 1)).join(`0`) + number;
+const zeroFill = (numb, zerosAmount) => {
+  zerosAmount -= numb.toString().length;
+  if (zerosAmount > 0) {
+    return new Array(zerosAmount + (/\./.test(numb) ? 2 : 1)).join(`0`) + numb;
   }
-  return number + ``;
+  return numb + ``;
 };
 
 const getPictureFileName = (num1, num2) => {

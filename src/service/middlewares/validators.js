@@ -25,21 +25,24 @@ const offerValidator = (req, res, next) => {
 
 const offerPutValidator = (req, res, next) => {
   const newOffer = req.body;
-  const keys = Object.keys(newOffer);
-  const keysExists = offerKeys.some((key) => keys.includes(key));
-
-  if (!keysExists) {
-    sendResponse(res, HttpCode.BAD_REQUEST, `no such fields in offer`);
+  if (newOffer) {
+    const keys = Object.keys(newOffer);
+    const keysExists = offerKeys.some((key) => keys.includes(key));
+    if (!keysExists) {
+      sendResponse(res, HttpCode.BAD_REQUEST, `no such fields in offer`);
+    } else {
+      next();
+    }
+  } else {
+    sendResponse(res, HttpCode.BAD_REQUEST, `provided data was wrong. Error: ${req.body}`);
   }
-
-  next();
 };
 
 const commentValidator = (req, res, next) => {
   if (`text` in req.body) {
     next();
   } else {
-    sendResponse(res, HttpCode.BAD_REQUEST, `invalid input`);
+    sendResponse(res, HttpCode.BAD_REQUEST, `object should have text key`);
   }
 };
 
